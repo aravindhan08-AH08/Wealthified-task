@@ -1,6 +1,6 @@
 # Mutual Fund Transaction Dashboard 📈
 
-A modern, high-performance **Vanilla HTML + CSS + JavaScript** dashboard for tracking mutual fund transaction summaries, powered by a **Python / FastAPI** backend and a persistent **SQLite** database.
+A modern, high-performance **Vanilla HTML + CSS + JavaScript** dashboard for tracking mutual fund transaction summaries, powered by a **Python / FastAPI** backend and a persistent **PostgreSQl** database.
 
 ---
 
