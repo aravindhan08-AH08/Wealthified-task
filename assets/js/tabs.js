@@ -5,12 +5,36 @@
 let activeTab = 0;
 
 const TAB_META = [
-  { title: "Dashboard Overview",    desc: "Real-time mutual fund performance metrics",      bc: "Overview" },
-  { title: "Transaction History",   desc: "Complete transaction ledger database",           bc: "Transactions" },
-  { title: "All Investors",         desc: "List of all unique investor accounts",           bc: "All Investors" },
-  { title: "All Funds",             desc: "Capital allocations across all mutual schemes",   bc: "All Funds" },
-  { title: "Investor-wise Ledger",  desc: "Portfolios and holdings grouped by investor",    bc: "Investor Summary" },
-  { title: "Fund-wise Ledger",      desc: "Investor capital summaries grouped by scheme",    bc: "Fund Summary" }
+  {
+    title: "Dashboard Overview",
+    desc: "Real-time mutual fund performance metrics",
+    bc: "Overview",
+  },
+  {
+    title: "Transaction History",
+    desc: "Complete transaction ledger database",
+    bc: "Transactions",
+  },
+  {
+    title: "All Investors",
+    desc: "List of all unique investor accounts",
+    bc: "All Investors",
+  },
+  {
+    title: "All Funds",
+    desc: "Capital allocations across all mutual schemes",
+    bc: "All Funds",
+  },
+  {
+    title: "Investor-wise Ledger",
+    desc: "Portfolios and holdings grouped by investor",
+    bc: "Investor Summary",
+  },
+  {
+    title: "Fund-wise Ledger",
+    desc: "Investor capital summaries grouped by scheme",
+    bc: "Fund Summary",
+  },
 ];
 
 /**
@@ -18,17 +42,17 @@ const TAB_META = [
  */
 function setTab(i) {
   activeTab = i;
-  
+
   // Toggle active class on sidebar navigation items
-  document.querySelectorAll('.nav-item').forEach((item, idx) => {
-    item.classList.toggle('active', idx === i);
+  document.querySelectorAll(".nav-item").forEach((item, idx) => {
+    item.classList.toggle("active", idx === i);
   });
-  
+
   // Update header text and breadcrumb dynamically
-  document.getElementById('pageTitle').textContent = TAB_META[i].title;
-  document.getElementById('pageDesc').textContent  = TAB_META[i].desc;
-  document.getElementById('breadcrumbActive').textContent = TAB_META[i].bc;
-  
+  document.getElementById("pageTitle").textContent = TAB_META[i].title;
+  document.getElementById("pageDesc").textContent = TAB_META[i].desc;
+  document.getElementById("breadcrumbActive").textContent = TAB_META[i].bc;
+
   renderContent();
 }
 
@@ -44,16 +68,16 @@ function renderAll() {
  * Selects and renders the correct view markup based on activeTab.
  */
 function renderContent() {
-  const el = document.getElementById('tabContent');
+  const el = document.getElementById("tabContent");
   if (!el) return;
-  
-  el.classList.remove('fade-up');
+
+  el.classList.remove("fade-up");
   void el.offsetWidth; // Force CSS animation repaint
-  el.classList.add('fade-up');
-  
+  el.classList.add("fade-up");
+
   destroyCharts();
 
-  switch(activeTab) {
+  switch (activeTab) {
     case 0:
       el.innerHTML = buildOverviewTab(filtered);
       // Let the canvas render fully before drawing Chart.js graphs
@@ -88,13 +112,20 @@ function buildOverviewTab(filtered) {
   }
 
   const byScheme = {};
-  filtered.forEach(r => {
+  filtered.forEach((r) => {
     if (!byScheme[r.scheme]) {
-      byScheme[r.scheme] = { scheme: r.scheme, type: r.schemeType, totalAmt: 0, totalUnits: 0, navSum: 0, navCount: 0 };
+      byScheme[r.scheme] = {
+        scheme: r.scheme,
+        type: r.schemeType,
+        totalAmt: 0,
+        totalUnits: 0,
+        navSum: 0,
+        navCount: 0,
+      };
     }
-    byScheme[r.scheme].totalAmt   += r.amount;
+    byScheme[r.scheme].totalAmt += r.amount;
     byScheme[r.scheme].totalUnits += r.units;
-    byScheme[r.scheme].navSum     += r.purPrice;
+    byScheme[r.scheme].navSum += r.purPrice;
     byScheme[r.scheme].navCount++;
   });
 
@@ -144,9 +175,13 @@ function buildOverviewTab(filtered) {
             </tr>
           </thead>
           <tbody>
-            ${funds.map(f => {
-              const avgNav = f.totalUnits > 0 ? (f.totalAmt / f.totalUnits) : (f.navSum / f.navCount);
-              return `
+            ${funds
+              .map((f) => {
+                const avgNav =
+                  f.totalUnits > 0
+                    ? f.totalAmt / f.totalUnits
+                    : f.navSum / f.navCount;
+                return `
                 <tr>
                   <td style="font-weight: 600; color: var(--text); max-width: 320px;">${f.scheme}</td>
                   <td><span class="scheme-type">${f.type}</span></td>
@@ -155,7 +190,8 @@ function buildOverviewTab(filtered) {
                   <td class="units-col" style="text-align: right; font-weight: 500; color: var(--text);">₹${fmt(avgNav)}</td>
                 </tr>
               `;
-            }).join('')}
+              })
+              .join("")}
           </tbody>
         </table>
       </div>
@@ -167,7 +203,8 @@ function buildOverviewTab(filtered) {
 // TAB 1: TRANSACTIONS (Granular history list)
 // ============================================================
 function buildTransactionsTab(filtered) {
-  if (!filtered.length) return '<div class="empty">No transactions found.</div>';
+  if (!filtered.length)
+    return '<div class="empty">No transactions found.</div>';
   return `
     <div class="card">
       <div class="card-header">
@@ -193,7 +230,9 @@ function buildTransactionsTab(filtered) {
             </tr>
           </thead>
           <tbody>
-            ${filtered.map((r, i) => `
+            ${filtered
+              .map(
+                (r, i) => `
               <tr>
                 <td style="color: var(--text3); font-weight: 500;">${i + 1}</td>
                 <td style="font-weight: 500;">${r.tradeDate}</td>
@@ -205,7 +244,9 @@ function buildTransactionsTab(filtered) {
                 <td class="units-col" style="text-align: right;">${fmtU(r.units)}</td>
                 <td class="units-col" style="text-align: right;">₹${fmt(r.purPrice)}</td>
               </tr>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </tbody>
         </table>
       </div>
@@ -219,9 +260,15 @@ function buildTransactionsTab(filtered) {
 function buildAllInvestorsTab(filtered) {
   if (!filtered.length) return '<div class="empty">No investors found.</div>';
   const byPan = {};
-  filtered.forEach(r => {
+  filtered.forEach((r) => {
     if (!byPan[r.pan]) {
-      byPan[r.pan] = { inv: r.inv, pan: r.pan, totalAmt: 0, txns: 0, taxStatus: r.taxStatus };
+      byPan[r.pan] = {
+        inv: r.inv,
+        pan: r.pan,
+        totalAmt: 0,
+        txns: 0,
+        taxStatus: r.taxStatus,
+      };
     }
     byPan[r.pan].totalAmt += r.amount;
     byPan[r.pan].txns++;
@@ -249,7 +296,9 @@ function buildAllInvestorsTab(filtered) {
             </tr>
           </thead>
           <tbody>
-            ${rows.map((r, i) => `
+            ${rows
+              .map(
+                (r, i) => `
               <tr>
                 <td style="color: var(--text3); font-weight: 500;">${i + 1}</td>
                 <td style="font-weight: 600; color: var(--text);">${r.inv}</td>
@@ -258,7 +307,9 @@ function buildAllInvestorsTab(filtered) {
                 <td style="font-weight: 500; color: var(--text);">${r.txns}</td>
                 <td class="amount" style="text-align: right; color: var(--accent);">₹${fmt(r.totalAmt)}</td>
               </tr>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </tbody>
         </table>
       </div>
@@ -272,11 +323,16 @@ function buildAllInvestorsTab(filtered) {
 function buildAllFundsTab(filtered) {
   if (!filtered.length) return '<div class="empty">No schemes found.</div>';
   const byScheme = {};
-  filtered.forEach(r => {
+  filtered.forEach((r) => {
     if (!byScheme[r.scheme]) {
-      byScheme[r.scheme] = { scheme: r.scheme, type: r.schemeType, totalAmt: 0, totalUnits: 0 };
+      byScheme[r.scheme] = {
+        scheme: r.scheme,
+        type: r.schemeType,
+        totalAmt: 0,
+        totalUnits: 0,
+      };
     }
-    byScheme[r.scheme].totalAmt   += r.amount;
+    byScheme[r.scheme].totalAmt += r.amount;
     byScheme[r.scheme].totalUnits += r.units;
   });
   const rows = Object.values(byScheme).sort((a, b) => b.totalAmt - a.totalAmt);
@@ -302,16 +358,20 @@ function buildAllFundsTab(filtered) {
             </tr>
           </thead>
           <tbody>
-            ${rows.map((r, i) => `
+            ${rows
+              .map(
+                (r, i) => `
               <tr>
                 <td style="color: var(--text3); font-weight: 500;">${i + 1}</td>
                 <td style="font-weight: 600; color: var(--text); max-width: 300px;">${r.scheme}</td>
                 <td><span class="scheme-type">${r.type}</span></td>
                 <td class="amount" style="text-align: right; color: var(--accent);">₹${fmt(r.totalAmt)}</td>
                 <td class="units-col" style="text-align: right;">${fmtU(r.totalUnits)}</td>
-                <td class="units-col" style="text-align: right; font-weight: 500; color: var(--text);">₹${fmt(r.totalUnits > 0 ? (r.totalAmt / r.totalUnits) : 0)}</td>
+                <td class="units-col" style="text-align: right; font-weight: 500; color: var(--text);">₹${fmt(r.totalUnits > 0 ? r.totalAmt / r.totalUnits : 0)}</td>
               </tr>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </tbody>
         </table>
       </div>
@@ -325,14 +385,22 @@ function buildAllFundsTab(filtered) {
 function buildInvestorSummaryTab(filtered) {
   if (!filtered.length) return '<div class="empty">No holdings found.</div>';
   const byInv = {};
-  filtered.forEach(r => {
+  filtered.forEach((r) => {
     if (!byInv[r.pan]) {
-      byInv[r.pan] = { inv: r.inv, pan: r.pan, taxStatus: r.taxStatus, rows: [], totalAmt: 0 };
+      byInv[r.pan] = {
+        inv: r.inv,
+        pan: r.pan,
+        taxStatus: r.taxStatus,
+        rows: [],
+        totalAmt: 0,
+      };
     }
     byInv[r.pan].rows.push(r);
     byInv[r.pan].totalAmt += r.amount;
   });
-  return Object.values(byInv).map(iv => `
+  return Object.values(byInv)
+    .map(
+      (iv) => `
     <div class="card">
       <div class="card-header">
         <div>
@@ -353,7 +421,9 @@ function buildInvestorSummaryTab(filtered) {
             </tr>
           </thead>
           <tbody>
-            ${iv.rows.map(r => `
+            ${iv.rows
+              .map(
+                (r) => `
               <tr>
                 <td style="font-weight: 600; color: var(--text); max-width:280px">${r.scheme}</td>
                 <td><span class="scheme-type">${r.schemeType}</span></td>
@@ -361,12 +431,16 @@ function buildInvestorSummaryTab(filtered) {
                 <td class="units-col" style="text-align: right;">${fmtU(r.units)}</td>
                 <td class="units-col" style="text-align: right;">₹${fmt(r.purPrice)}</td>
               </tr>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </tbody>
         </table>
       </div>
     </div>
-  `).join('');
+  `,
+    )
+    .join("");
 }
 
 // ============================================================
@@ -375,15 +449,23 @@ function buildInvestorSummaryTab(filtered) {
 function buildFundSummaryTab(filtered) {
   if (!filtered.length) return '<div class="empty">No schemes found.</div>';
   const byScheme = {};
-  filtered.forEach(r => {
+  filtered.forEach((r) => {
     if (!byScheme[r.scheme]) {
-      byScheme[r.scheme] = { scheme: r.scheme, type: r.schemeType, rows: [], totalAmt: 0, totalUnits: 0 };
+      byScheme[r.scheme] = {
+        scheme: r.scheme,
+        type: r.schemeType,
+        rows: [],
+        totalAmt: 0,
+        totalUnits: 0,
+      };
     }
     byScheme[r.scheme].rows.push(r);
-    byScheme[r.scheme].totalAmt   += r.amount;
+    byScheme[r.scheme].totalAmt += r.amount;
     byScheme[r.scheme].totalUnits += r.units;
   });
-  return Object.values(byScheme).map(s => `
+  return Object.values(byScheme)
+    .map(
+      (s) => `
     <div class="card">
       <div class="card-header">
         <div>
@@ -405,7 +487,9 @@ function buildFundSummaryTab(filtered) {
             </tr>
           </thead>
           <tbody>
-            ${s.rows.map(r => `
+            ${s.rows
+              .map(
+                (r) => `
               <tr>
                 <td style="font-weight: 600; color: var(--text);">${r.inv}</td>
                 <td><span class="pan-badge">${r.pan}</span></td>
@@ -414,10 +498,14 @@ function buildFundSummaryTab(filtered) {
                 <td class="units-col" style="text-align: right;">₹${fmt(r.purPrice)}</td>
                 <td style="font-weight: 500;">${r.tradeDate}</td>
               </tr>
-            `).join('')}
+            `,
+              )
+              .join("")}
           </tbody>
         </table>
       </div>
     </div>
-  `).join('');
+  `,
+    )
+    .join("");
 }

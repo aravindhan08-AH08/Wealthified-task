@@ -4,9 +4,9 @@
 
 // Format number as Indian currency (e.g. 1,49,192.50)
 function fmt(n) {
-  return Number(n).toLocaleString('en-IN', {
+  return Number(n).toLocaleString("en-IN", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   });
 }
 
@@ -17,5 +17,5 @@ function fmtU(n) {
 
 // Truncate long scheme names
 function shortScheme(s, max = 36) {
-  return s.length > max ? s.substring(0, max - 2) + '…' : s;
+  return s.length > max ? s.substring(0, max - 2) + "…" : s;
 }

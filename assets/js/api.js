@@ -21,7 +21,7 @@ const DEFAULT_MOCK_DATA = [
     units: 261.4965,
     amount: 6499.68,
     schemeType: "Index Fund",
-    taxStatus: "Individual"
+    taxStatus: "Individual",
   },
   {
     amc: "Kotak",
@@ -30,11 +30,11 @@ const DEFAULT_MOCK_DATA = [
     inv: "Shilpa J Suresh",
     pan: "FRSPS3248J",
     tradeDate: "2025-05-27",
-    purPrice: 36.90,
+    purPrice: 36.9,
     units: 40.431,
     amount: 1491.93,
     schemeType: "Gold FOF",
-    taxStatus: "NRI - Non-Repatriable (NRO)"
+    taxStatus: "NRI - Non-Repatriable (NRO)",
   },
   {
     amc: "Kotak",
@@ -43,11 +43,11 @@ const DEFAULT_MOCK_DATA = [
     inv: "Priyavarshini Damodaran",
     pan: "HECPD7014E",
     tradeDate: "2025-05-27",
-    purPrice: 36.90,
-    units: 54.20,
-    amount: 1999.90,
+    purPrice: 36.9,
+    units: 54.2,
+    amount: 1999.9,
     schemeType: "Gold FOF",
-    taxStatus: "Individual"
+    taxStatus: "Individual",
   },
   {
     amc: "Kotak",
@@ -56,12 +56,12 @@ const DEFAULT_MOCK_DATA = [
     inv: "Nivedhitha Rajagopal",
     pan: "AVNPN8269J",
     tradeDate: "2025-05-27",
-    purPrice: 36.90,
-    units: 27.10,
+    purPrice: 36.9,
+    units: 27.1,
     amount: 999.95,
     schemeType: "Gold FOF",
-    taxStatus: "Individual"
-  }
+    taxStatus: "Individual",
+  },
 ];
 
 // Track if we are running in local database fallback mode
@@ -78,13 +78,13 @@ async function loadAndRender() {
   try {
     let url = `${BASE_URL}/api/transactions`;
     const params = [];
-    
+
     // Fetch all transactions initially to auto-detect limits, otherwise filter
     if (typeof isInitialLoad !== "undefined" && !isInitialLoad) {
       if (fromDate) params.push(`from_date=${fromDate}`);
       if (toDate) params.push(`to_date=${toDate}`);
     }
-    
+
     if (params.length > 0) {
       url += `?${params.join("&")}`;
     }
@@ -99,7 +99,11 @@ async function loadAndRender() {
     isOfflineMode = false;
 
     // Handle dynamic date input populating on initial load
-    if (typeof isInitialLoad !== "undefined" && isInitialLoad && DATA.length > 0) {
+    if (
+      typeof isInitialLoad !== "undefined" &&
+      isInitialLoad &&
+      DATA.length > 0
+    ) {
       filtered = [...DATA]; // Show all on initial load
       setInitialDates(DATA);
     } else {
@@ -108,11 +112,14 @@ async function loadAndRender() {
   } catch (error) {
     // Gracefully handle backend server absence (e.g. static hostings like GitHub Pages)
     isOfflineMode = true;
-    console.warn("FastAPI backend is offline or unreachable. Falling back to persistent browser storage...", error);
-    
+    console.warn(
+      "FastAPI backend is offline or unreachable. Falling back to persistent browser storage...",
+      error,
+    );
+
     let localData = localStorage.getItem("mutual_funds_transactions");
     let hasLocalData = false;
-    
+
     if (localData) {
       try {
         const parsed = JSON.parse(localData);
@@ -124,26 +131,32 @@ async function loadAndRender() {
         hasLocalData = false;
       }
     }
-    
+
     // Self-healing: if localStorage is empty or corrupt, automatically seed it
     if (!hasLocalData) {
-      localStorage.setItem("mutual_funds_transactions", JSON.stringify(DEFAULT_MOCK_DATA));
+      localStorage.setItem(
+        "mutual_funds_transactions",
+        JSON.stringify(DEFAULT_MOCK_DATA),
+      );
       DATA = [...DEFAULT_MOCK_DATA];
     }
-    
+
     // Process date filters client-side in offline fallback mode
     if (typeof isInitialLoad !== "undefined" && isInitialLoad) {
       filtered = [...DATA]; // Show all transactions initially to avoid empty screens
       setInitialDates(DATA);
     } else {
-      filtered = DATA.filter(r => {
+      filtered = DATA.filter((r) => {
         const d = r.tradeDate;
         return (!fromDate || d >= fromDate) && (!toDate || d <= toDate);
       });
     }
-    
+
     if (typeof isInitialLoad !== "undefined" && isInitialLoad) {
-      showNotification("Running in Local Demo Mode (Static/GitHub Pages).", "success");
+      showNotification(
+        "Running in Local Demo Mode (Static/GitHub Pages).",
+        "success",
+      );
     }
   } finally {
     // Trigger complete dashboard re-render
@@ -159,10 +172,10 @@ async function loadAndRender() {
  * Sets input dates based on absolute min/max trade dates in dataset.
  */
 function setInitialDates(transactions) {
-  const dates = transactions.map(r => r.tradeDate).filter(Boolean);
+  const dates = transactions.map((r) => r.tradeDate).filter(Boolean);
   if (dates.length > 0) {
-    const minDate = dates.reduce((a, b) => a < b ? a : b);
-    const maxDate = dates.reduce((a, b) => a > b ? a : b);
+    const minDate = dates.reduce((a, b) => (a < b ? a : b));
+    const maxDate = dates.reduce((a, b) => (a > b ? a : b));
     document.getElementById("fromDate").value = minDate;
     document.getElementById("toDate").value = maxDate;
   }
@@ -210,13 +223,16 @@ async function uploadCSV(inputElement) {
     try {
       const response = await fetch(`${BASE_URL}/api/upload-csv`, {
         method: "POST",
-        body: formData
+        body: formData,
       });
 
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
-        showNotification(result.message || "CSV successfully imported.", "success");
+        showNotification(
+          result.message || "CSV successfully imported.",
+          "success",
+        );
         await loadAndRender();
       } else {
         throw new Error(result.detail || "Import failed on backend.");
@@ -231,7 +247,7 @@ async function uploadCSV(inputElement) {
       uploadLabel.style.pointerEvents = "auto";
       uploadLabel.style.opacity = "1";
     }
-  } 
+  }
   // --- OFFLINE / DEPLOYED MODE (Browser LocalStorage DB) ---
   else {
     try {
@@ -253,11 +269,14 @@ async function uploadCSV(inputElement) {
  */
 async function uploadCSVClientSide(file) {
   const reader = new FileReader();
-  reader.onload = async function(e) {
+  reader.onload = async function (e) {
     const text = e.target.result;
     const count = parseCSVText(text);
     if (count > 0) {
-      showNotification(`Successfully imported ${count} transactions offline.`, "success");
+      showNotification(
+        `Successfully imported ${count} transactions offline.`,
+        "success",
+      );
       await loadAndRender();
     } else {
       showNotification("No transactions found or malformed CSV file.", "error");
@@ -272,23 +291,71 @@ async function uploadCSVClientSide(file) {
 function parseCSVText(text) {
   const lines = text.split(/\r?\n/);
   if (lines.length <= 1) return 0;
-  
-  const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
-  
+
+  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+
   const fieldMappings = {
-    amc: ["amc", "mutual fund company", "fund house", "asset management company"],
+    amc: [
+      "amc",
+      "mutual fund company",
+      "fund house",
+      "asset management company",
+    ],
     folio: ["folio", "folio number", "folio no", "folio_number"],
-    scheme: ["scheme", "scheme name", "mutual fund", "fund", "fund name", "scheme_name"],
-    inv: ["inv", "investor", "investor name", "name", "holder name", "primary holder", "investor_name"],
+    scheme: [
+      "scheme",
+      "scheme name",
+      "mutual fund",
+      "fund",
+      "fund name",
+      "scheme_name",
+    ],
+    inv: [
+      "inv",
+      "investor",
+      "investor name",
+      "name",
+      "holder name",
+      "primary holder",
+      "investor_name",
+    ],
     pan: ["pan", "pan number", "pan no", "pan_number"],
-    tradeDate: ["tradedate", "trade date", "transaction date", "date", "date of purchase", "transaction_date"],
-    purPrice: ["purprice", "pur price", "purchase price", "nav", "nav price", "price", "purchase_price"],
+    tradeDate: [
+      "tradedate",
+      "trade date",
+      "transaction date",
+      "date",
+      "date of purchase",
+      "transaction_date",
+    ],
+    purPrice: [
+      "purprice",
+      "pur price",
+      "purchase price",
+      "nav",
+      "nav price",
+      "price",
+      "purchase_price",
+    ],
     units: ["units", "units purchased", "quantity", "unit quantity"],
-    amount: ["amount", "amount invested", "total amount", "investment amount", "purchase amount", "total_amount"],
-    schemeType: ["schemetype", "scheme type", "type", "category", "scheme_type"],
-    taxStatus: ["taxstatus", "tax status", "investor status", "tax_status"]
+    amount: [
+      "amount",
+      "amount invested",
+      "total amount",
+      "investment amount",
+      "purchase amount",
+      "total_amount",
+    ],
+    schemeType: [
+      "schemetype",
+      "scheme type",
+      "type",
+      "category",
+      "scheme_type",
+    ],
+    taxStatus: ["taxstatus", "tax status", "investor status", "tax_status"],
   };
-  
+
   const colMap = {};
   for (const [key, alternates] of Object.entries(fieldMappings)) {
     for (const alt of alternates) {
@@ -299,7 +366,7 @@ function parseCSVText(text) {
       }
     }
   }
-  
+
   // Best guess positional mappings if strict headers missing
   if (colMap.scheme === undefined && headers.length >= 3) {
     colMap.amc = 0;
@@ -314,58 +381,74 @@ function parseCSVText(text) {
     colMap.schemeType = 9;
     colMap.taxStatus = 10;
   }
-  
+
   let count = 0;
   let localData = [];
   try {
-    localData = JSON.parse(localStorage.getItem("mutual_funds_transactions") || "[]");
+    localData = JSON.parse(
+      localStorage.getItem("mutual_funds_transactions") || "[]",
+    );
   } catch (e) {
     localData = [];
   }
-  
+
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
-    
+
     // Split row on commas ignoring commas inside double-quoted values
-    const row = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').trim());
-    
+    const row = line
+      .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+      .map((v) => v.replace(/^"|"$/g, "").trim());
+
     try {
       const scheme = row[colMap.scheme];
       if (!scheme) continue;
-      
+
       const amc = row[colMap.amc] || "Unknown";
       const folio = row[colMap.folio] || "Unknown";
       const inv = row[colMap.inv] || "Unknown";
       const pan = row[colMap.pan] || "Unknown";
-      
+
       let tradeDate = row[colMap.tradeDate] || "2025-05-27";
       tradeDate = tradeDate.replace(/\//g, "-");
       const parts = tradeDate.split("-");
       if (parts.length === 3) {
         if (parts[0].length === 4) {
-          tradeDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+          tradeDate = `${parts[0]}-${parts[1].padStart(2, "0")}-${parts[2].padStart(2, "0")}`;
         } else if (parts[2].length === 4) {
-          tradeDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          tradeDate = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
         }
       }
-      
-      let purPrice = parseFloat((row[colMap.purPrice] || "0").replace(/,/g, ''));
-      let units = parseFloat((row[colMap.units] || "0").replace(/,/g, ''));
-      let amount = parseFloat((row[colMap.amount] || "0").replace(/,/g, ''));
-      
+
+      let purPrice = parseFloat(
+        (row[colMap.purPrice] || "0").replace(/,/g, ""),
+      );
+      let units = parseFloat((row[colMap.units] || "0").replace(/,/g, ""));
+      let amount = parseFloat((row[colMap.amount] || "0").replace(/,/g, ""));
+
       // Dynamic metric computations
       if (amount === 0 && units > 0 && purPrice > 0) {
         amount = Math.round(units * purPrice * 100) / 100;
       } else if (units === 0 && amount > 0 && purPrice > 0) {
         units = Math.round((amount / purPrice) * 10000) / 10000;
       }
-      
+
       const schemeType = row[colMap.schemeType] || "Equity";
       const taxStatus = row[colMap.taxStatus] || "Individual";
-      
+
       localData.push({
-        amc, folio, scheme, inv, pan, tradeDate, purPrice, units, amount, schemeType, taxStatus
+        amc,
+        folio,
+        scheme,
+        inv,
+        pan,
+        tradeDate,
+        purPrice,
+        units,
+        amount,
+        schemeType,
+        taxStatus,
       });
       count++;
     } catch (e) {
@@ -373,9 +456,12 @@ function parseCSVText(text) {
       continue;
     }
   }
-  
+
   if (count > 0) {
-    localStorage.setItem("mutual_funds_transactions", JSON.stringify(localData));
+    localStorage.setItem(
+      "mutual_funds_transactions",
+      JSON.stringify(localData),
+    );
   }
   return count;
 }
@@ -384,30 +470,41 @@ function parseCSVText(text) {
  * Requests database reset. Automatically resets local storage if running offline.
  */
 async function resetDatabase() {
-  const confirmReset = confirm("Are you sure you want to clear the database and restore default demo mutual fund records?");
+  const confirmReset = confirm(
+    "Are you sure you want to clear the database and restore default demo mutual fund records?",
+  );
   if (!confirmReset) return;
 
   if (!isOfflineMode) {
     try {
       const response = await fetch(`${BASE_URL}/api/reset-db`, {
-        method: "POST"
+        method: "POST",
       });
-      
+
       const result = await response.json();
       if (response.ok && result.success) {
-        showNotification(result.message || "Database reset successful.", "success");
+        showNotification(
+          result.message || "Database reset successful.",
+          "success",
+        );
         await loadAndRender();
         return;
       } else {
         throw new Error(result.detail || "Failed to reset database.");
       }
     } catch (error) {
-      console.error("Failed to reset backend database, resetting local storage:", error);
+      console.error(
+        "Failed to reset backend database, resetting local storage:",
+        error,
+      );
     }
   }
 
   // Fallback offline reset
-  localStorage.setItem("mutual_funds_transactions", JSON.stringify(DEFAULT_MOCK_DATA));
+  localStorage.setItem(
+    "mutual_funds_transactions",
+    JSON.stringify(DEFAULT_MOCK_DATA),
+  );
   showNotification("Demo database successfully restored locally.", "success");
   await loadAndRender();
 }
@@ -442,11 +539,12 @@ function showNotification(message, type = "success") {
     align-items: center;
     gap: 10px;
   `;
-  
+
   const successIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M13.5 4.5l-7 7-3.5-3.5"/></svg>`;
   const errorIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M12 4L4 12M4 4l8 8"/></svg>`;
-  
-  notification.innerHTML = (type === "success" ? successIcon : errorIcon) + `<span>${message}</span>`;
+
+  notification.innerHTML =
+    (type === "success" ? successIcon : errorIcon) + `<span>${message}</span>`;
   document.body.appendChild(notification);
 
   if (!document.getElementById("notification-styles")) {
@@ -466,7 +564,8 @@ function showNotification(message, type = "success") {
   }
 
   setTimeout(() => {
-    notification.style.animation = "slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards";
+    notification.style.animation =
+      "slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards";
     setTimeout(() => notification.remove(), 300);
   }, 4000);
 }
