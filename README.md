@@ -49,8 +49,8 @@ To run this application locally, ensure you have the following installed on your
 | **Backend** | [FastAPI](https://fastapi.tiangolo.com/) | `0.110.0` | High-performance async web framework |
 | **Backend** | [Uvicorn](https://www.uvicorn.org/) | `0.28.0` | ASGI web server implementation |
 | **Backend** | [python-multipart](https://github.com/Kludex/python-multipart) | `0.0.9` | Handles multi-part file uploads (CSV files) |
-| **Database** | [SQLite](https://www.sqlite.org/index.html) | *Built-in* | Persistent local SQL transaction storage |
-| **Frontend** | [Chart.js](https://www.chartjs.org/) | `4.4.1` (via CDN) | Beautiful interactive metric bar charts |
+| **Database** | [PostgreSQL](https://www.postgresql.org/) | `15` or higher | Robust persistent SQL transaction storage |
+| **Frontend** | HTML, CSS, JS | Native | Clean, responsive and interactive client-side rendering |
 | **Frontend** | [Google Fonts](https://fonts.google.com/) | DM Sans & DM Mono | Sleek typography and monospace layouts |
 
 ---
