@@ -4,31 +4,38 @@ A modern, high-performance **Vanilla HTML + CSS + JavaScript** dashboard for tra
 
 ---
 
-## 🏛 System Architecture
+## 🏛 System Architecture (Dual-Mode Design)
 
-The project is structured as a decoupled full-stack application, ensuring clean separation of concerns, rapid data filtering, and robust persistence.
+To ensure the dashboard works flawlessly in both local and statically deployed environments, it implements a smart **Dual-Mode Architecture**:
+
+1. **Online Mode (FastAPI + SQLite)**: When running locally, the dashboard communicates directly with the Python FastAPI backend, persisting and aggregating your transactions inside a persistent SQLite database.
+2. **Offline Fallback Mode (Browser LocalStorage DB)**: When deployed as a static site (such as on **GitHub Pages**), the frontend automatically detects that the backend is unreachable. Instead of showing a blank screen, it seamlessly switches to a client-side database backed by browser `localStorage`. 
+
+All core features—including **date range filtering, metrics cards, interactive Chart.js graphs, and even CSV file uploading/parsing—remain 100% functional** even when running statically online with zero backend servers!
 
 ```mermaid
 graph TD
     subgraph Frontend [Frontend Dashboard (Port 5500)]
-        UI[index.html & CSS] <--> API[api.js (Fetch Client)]
+        UI[index.html & CSS] <--> API[api.js (Dual-Mode Fetch)]
         API --> Charts[charts.js (Chart.js)]
         API --> Metrics[metrics.js]
         API --> Tabs[tabs.js]
     end
     
-    subgraph Backend [FastAPI Backend (Port 8000)]
-        Router[main.py (API Routes)] <--> DB_Layer[database.py (SQL Queries)]
+    subgraph Online_Mode [Online Mode (Local Development)]
+        Router[main.py (API Routes)] <--> DB_Layer[database.py (SQL Helper)]
+        DB_Layer <--> DB[(mutual_funds.db SQLite)]
     end
     
-    subgraph Storage [Persistent Storage]
-        DB[(mutual_funds.db SQLite)]
+    subgraph Offline_Mode [Offline Fallback Mode (Deployed / GitHub Pages)]
+        LS[(Browser LocalStorage DB)]
     end
 
-    API <--> |JSON API Calls / CORS| Router
-    DB_Layer <--> |SQL Queries / Index| DB
-    API -.-> |Multipart Form Data (CSV Upload)| Router
+    API <--> |JSON API / CORS| Router
+    API <--> |Local Persistence Fallback| LS
+    API -.-> |Multipart CSV Upload| Router
 ```
+
 
 ---
 
