@@ -1,43 +1,48 @@
+// ============================================================
+// charts.js — Overview Visualizations (Bar & Doughnut Charts)
+// ============================================================
+
 let chartInstances = {};
 
+/**
+ * Cleanly destroys any existing chart instances to avoid redraw bugs.
+ */
 function destroyCharts() {
-  Object.values(chartInstances).forEach(c => { try { c.destroy(); } catch(e) {} });
+  Object.values(chartInstances).forEach(c => {
+    try {
+      c.destroy();
+    } catch (e) {
+      console.warn("Error destroying chart: ", e);
+    }
+  });
   chartInstances = {};
 }
 
+/**
+ * Builds the visual dashboard charts (Bar allocation & Doughnut distribution).
+ */
 function buildFundChart(filtered) {
   const byScheme = {};
   filtered.forEach(r => {
-    if (!byScheme[r.scheme]) byScheme[r.scheme] = { totalAmt: 0, totalUnits: 0 };
+    if (!byScheme[r.scheme]) {
+      byScheme[r.scheme] = { totalAmt: 0, totalUnits: 0 };
+    }
     byScheme[r.scheme].totalAmt   += r.amount;
     byScheme[r.scheme].totalUnits += r.units;
   });
 
-  const labels = Object.keys(byScheme).map(s => s.length > 28 ? s.substring(0, 26) + '…' : s);
+  const labels = Object.keys(byScheme).map(s => s.length > 25 ? s.substring(0, 23) + '…' : s);
   const amts   = Object.values(byScheme).map(v => Math.round(v.totalAmt));
-  const units  = Object.values(byScheme).map(v => parseFloat(v.totalUnits.toFixed(4)));
-  const COLORS = ['#4f7fff', '#2ecc8f', '#f0a500', '#e05a6a'];
+  const units  = Object.values(byScheme).map(v => parseFloat(v.totalUnits.toFixed(2)));
+  
+  // Dynamic, premium light HSL palette
+  const COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4'];
 
   const amtCtx  = document.getElementById('amtChart');
   const unitCtx = document.getElementById('unitChart');
   if (!amtCtx || !unitCtx) return;
 
-  const baseOpts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: {
-        ticks: { color: '#555f7a', font: { size: 11, family: "'DM Sans'" }, autoSkip: false, maxRotation: 20 },
-        grid:  { color: 'rgba(255,255,255,0.04)' }
-      },
-      y: {
-        ticks: { color: '#555f7a', font: { size: 11, family: "'DM Sans'" } },
-        grid:  { color: 'rgba(255,255,255,0.06)' }
-      }
-    }
-  };
-
+  // 1. AMOUNT INVESTED BAR CHART
   chartInstances.amt = new Chart(amtCtx, {
     type: 'bar',
     data: {
@@ -45,36 +50,62 @@ function buildFundChart(filtered) {
       datasets: [{
         data: amts,
         backgroundColor: COLORS,
-        borderRadius: 6,
-        borderSkipped: false
+        borderRadius: 8,
+        borderSkipped: false,
+        barThickness: 24
       }]
     },
     options: {
-      ...baseOpts,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
       scales: {
-        ...baseOpts.scales,
+        x: {
+          ticks: { color: '#64748b', font: { size: 10.5, family: "'Inter', sans-serif", weight: 500 } },
+          grid: { display: false }
+        },
         y: {
-          ...baseOpts.scales.y,
           ticks: {
-            ...baseOpts.scales.y.ticks,
+            color: '#64748b',
+            font: { size: 10.5, family: "'Inter', sans-serif" },
             callback: v => '₹' + v.toLocaleString('en-IN')
-          }
+          },
+          grid: { color: '#f1f5f9' }
         }
       }
     }
   });
 
+  // 2. UNITS DISTRIBUTION DOUGHNUT CHART
   chartInstances.unit = new Chart(unitCtx, {
-    type: 'bar',
+    type: 'doughnut',
     data: {
       labels,
       datasets: [{
         data: units,
-        backgroundColor: COLORS.map(c => c + '99'),
-        borderRadius: 6,
-        borderSkipped: false
+        backgroundColor: COLORS,
+        borderWidth: 2,
+        borderColor: '#ffffff',
+        hoverOffset: 6
       }]
     },
-    options: baseOpts
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            color: '#475569',
+            boxWidth: 12,
+            font: { size: 11, family: "'Inter', sans-serif", weight: 500 },
+            padding: 14
+          }
+        }
+      },
+      cutout: '70%' // Gives the hollow ring look shown in the screenshots
+    }
   });
 }
