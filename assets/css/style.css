@@ -216,6 +216,48 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
+
+/* ---- DATABASE ACTIONS ---- */
+.db-actions {
+  margin-top: auto;
+  padding: 20px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.db-section-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+.btn-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
+.btn-reset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  border: 1px dashed rgba(224, 90, 106, 0.25);
+  background: transparent;
+  color: var(--accent4);
+}
+.btn-reset:hover {
+  background: rgba(224, 90, 106, 0.06);
+  border-color: var(--accent4);
+}
+
 /* ---- RESPONSIVE ---- */
 @media (max-width: 900px) {
   .sidebar    { display: none; }
@@ -223,3 +265,4 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   .metrics    { grid-template-columns: repeat(2, 1fr); }
   .chart-grid { grid-template-columns: 1fr; }
 }
+

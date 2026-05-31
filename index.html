@@ -1,136 +1,192 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mutual Fund Dashboard</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mutual Fund Dashboard</title>
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- Chart.js CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="assets/css/style.css"/>
-</head>
-<body>
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body>
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="sidebar">
+      <div class="logo"><span>MF</span> Dashboard</div>
+      <nav class="nav">
+        <div class="nav-item active" onclick="setTab(0)">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <rect x="1" y="1" width="6" height="6" rx="1.5" />
+            <rect x="9" y="1" width="6" height="6" rx="1.5" />
+            <rect x="1" y="9" width="6" height="6" rx="1.5" />
+            <rect x="9" y="9" width="6" height="6" rx="1.5" />
+          </svg>
+          Investor per Fund
+        </div>
 
-<!-- ==================== SIDEBAR ==================== -->
-<aside class="sidebar">
-  <div class="logo"><span>MF</span> Dashboard</div>
-  <nav class="nav">
+        <div class="nav-item" onclick="setTab(1)">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <circle cx="8" cy="4" r="2.5" />
+            <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+          </svg>
+          Fund per Investor
+        </div>
 
-    <div class="nav-item active" onclick="setTab(0)">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-        <rect x="1" y="1" width="6" height="6" rx="1.5"/>
-        <rect x="9" y="1" width="6" height="6" rx="1.5"/>
-        <rect x="1" y="9" width="6" height="6" rx="1.5"/>
-        <rect x="9" y="9" width="6" height="6" rx="1.5"/>
-      </svg>
-      Investor per Fund
-    </div>
+        <div class="nav-item" onclick="setTab(2)">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M2 4h12M2 8h8M2 12h10" />
+          </svg>
+          Investor List
+        </div>
 
-    <div class="nav-item" onclick="setTab(1)">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="8" cy="4" r="2.5"/>
-        <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
-      </svg>
-      Fund per Investor
-    </div>
+        <div class="nav-item" onclick="setTab(3)">
+          <svg
+            class="nav-icon"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M2 12l3-4 3 2 3-5 3 3" />
+            <rect x="1" y="1" width="14" height="14" rx="2" />
+          </svg>
+          Fund Summary
+        </div>
+      </nav>
 
-    <div class="nav-item" onclick="setTab(2)">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M2 4h12M2 8h8M2 12h10"/>
-      </svg>
-      Investor List
-    </div>
-
-    <div class="nav-item" onclick="setTab(3)">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M2 12l3-4 3 2 3-5 3 3"/>
-        <rect x="1" y="1" width="14" height="14" rx="2"/>
-      </svg>
-      Fund Summary
-    </div>
-
-  </nav>
-</aside>
-
-<!-- ==================== MAIN ==================== -->
-<main class="main">
-
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div>
-      <h1 id="pageTitle">Investor-wise Purchase per Fund</h1>
-      <p id="pageDesc">Purchase summary grouped by mutual fund scheme</p>
-    </div>
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-      <div class="filter-bar">
-        <span class="filter-label">FROM</span>
-        <input type="date" id="fromDate" value="2025-05-01"/>
-        <div class="sep"></div>
-        <span class="filter-label">TO</span>
-        <input type="date" id="toDate" value="2025-05-31"/>
+      <!-- DATABASE ACTIONS -->
+      <div class="db-actions">
+        <div class="db-section-title">Database</div>
+        <label for="csvFileInput" class="btn primary btn-upload">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M8 12V3M5 6l3-3 3 3M2 13h12" />
+          </svg>
+          Upload CSV
+        </label>
+        <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="uploadCSV(this)" />
+        
+        <button class="btn btn-reset" onclick="resetDatabase()">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 3l10 10M13 3L3 13" />
+          </svg>
+          Reset to Demo
+        </button>
       </div>
-      <button class="btn primary" onclick="applyFilter()">Apply</button>
-      <button class="btn" onclick="resetFilter()">Reset</button>
-    </div>
-  </div>
+    </aside>
 
-  <!-- METRIC CARDS -->
-  <div class="metrics">
-    <div class="metric m1">
-      <div class="metric-label">Total Invested</div>
-      <div class="metric-val" id="mTotalAmt">₹0</div>
-      <div class="metric-sub">across all transactions</div>
-    </div>
-    <div class="metric m2">
-      <div class="metric-label">Total Units</div>
-      <div class="metric-val" id="mTotalUnits">0</div>
-      <div class="metric-sub">NAV units purchased</div>
-    </div>
-    <div class="metric m3">
-      <div class="metric-label">Funds</div>
-      <div class="metric-val" id="mFunds">0</div>
-      <div class="metric-sub">unique schemes</div>
-    </div>
-    <div class="metric m4">
-      <div class="metric-label">Investors</div>
-      <div class="metric-val" id="mInvestors">0</div>
-      <div class="metric-sub">unique PANs</div>
-    </div>
-  </div>
 
-  <!-- TABS -->
-  <div class="tab-bar">
-    <button class="tab-btn active"  onclick="setTab(0)">Investor / Fund</button>
-    <button class="tab-btn"         onclick="setTab(1)">Fund / Investor</button>
-    <button class="tab-btn"         onclick="setTab(2)">Investor List</button>
-    <button class="tab-btn"         onclick="setTab(3)">Fund Summary</button>
-  </div>
+    <!-- ==================== MAIN ==================== -->
+    <main class="main">
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div>
+          <h1 id="pageTitle">Investor-wise Purchase per Fund</h1>
+          <p id="pageDesc">Purchase summary grouped by mutual fund scheme</p>
+        </div>
+        <div
+          style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"
+        >
+          <div class="filter-bar">
+            <span class="filter-label">FROM</span>
+            <input type="date" id="fromDate" value="2025-05-01" />
+            <div class="sep"></div>
+            <span class="filter-label">TO</span>
+            <input type="date" id="toDate" value="2025-05-31" />
+          </div>
+          <button class="btn primary" onclick="loadAndRender()">Apply</button>
+          <button class="btn" onclick="resetFilter()">Reset</button>
+        </div>
+      </div>
 
-  <!-- DYNAMIC CONTENT -->
-  <div id="tabContent" class="fade-up"></div>
+      <!-- METRIC CARDS -->
+      <div class="metrics">
+        <div class="metric m1">
+          <div class="metric-label">Total Invested</div>
+          <div class="metric-val" id="mTotalAmt">–</div>
+          <div class="metric-sub">across all transactions</div>
+        </div>
+        <div class="metric m2">
+          <div class="metric-label">Total Units</div>
+          <div class="metric-val" id="mTotalUnits">–</div>
+          <div class="metric-sub">NAV units purchased</div>
+        </div>
+        <div class="metric m3">
+          <div class="metric-label">Funds</div>
+          <div class="metric-val" id="mFunds">–</div>
+          <div class="metric-sub">unique schemes</div>
+        </div>
+        <div class="metric m4">
+          <div class="metric-label">Investors</div>
+          <div class="metric-val" id="mInvestors">–</div>
+          <div class="metric-sub">unique PANs</div>
+        </div>
+      </div>
 
-</main>
+      <!-- TABS -->
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="setTab(0)">
+          Investor / Fund
+        </button>
+        <button class="tab-btn" onclick="setTab(1)">Fund / Investor</button>
+        <button class="tab-btn" onclick="setTab(2)">Investor List</button>
+        <button class="tab-btn" onclick="setTab(3)">Fund Summary</button>
+      </div>
 
-<!-- ==================== SCRIPTS ==================== -->
-<!-- Load order matters: utils → data → metrics → charts → filters → tabs -->
-<script src="assets/js/utils.js"></script>
-<script src="assets/js/data.js"></script>
-<script src="assets/js/metrics.js"></script>
-<script src="assets/js/charts.js"></script>
-<script src="assets/js/filters.js"></script>
-<script src="assets/js/tabs.js"></script>
+      <!-- DYNAMIC CONTENT -->
+      <div id="tabContent" class="fade-up"></div>
+    </main>
 
-<!-- Init -->
-<script>
-  renderAll();
-</script>
+    <!-- ==================== SCRIPTS ==================== -->
+    <!-- Load order: utils → api → metrics → charts → tabs -->
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/metrics.js"></script>
+    <script src="assets/js/charts.js"></script>
+    <script src="assets/js/tabs.js"></script>
 
-</body>
+    <script>
+      // Track initial load state to auto-discover date bounds from database
+      let isInitialLoad = true;
+
+      // Resets the date inputs and triggers database auto-discovery
+      function resetFilter() {
+        isInitialLoad = true;
+        document.getElementById("fromDate").value = "";
+        document.getElementById("toDate").value = "";
+        loadAndRender();
+      }
+
+      // Initial load call
+      loadAndRender();
+    </script>
+
+  </body>
 </html>
