@@ -1,7 +1,7 @@
 import csv
 import logging
 from io import StringIO
-from app.db.connection import get_db
+from db.connection import get_db
 
 logger = logging.getLogger("mutual-fund-api.db.importer")
 

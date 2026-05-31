@@ -10,7 +10,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("mutual-fund-api")
 
-from app.database import (
+# Corrected imports to use local directory instead of app package
+from database import (
     init_db,
     reset_db,
     fetch_all_transactions,

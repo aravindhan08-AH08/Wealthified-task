@@ -1,5 +1,5 @@
 import logging
-from app.db.connection import get_db
+from db.connection import get_db
 
 logger = logging.getLogger("mutual-fund-api.db.seeder")
 

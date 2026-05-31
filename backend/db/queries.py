@@ -1,6 +1,6 @@
 import logging
 import psycopg2.extras
-from app.db.connection import get_db
+from db.connection import get_db
 
 logger = logging.getLogger("mutual-fund-api.db.queries")
 

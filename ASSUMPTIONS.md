@@ -7,11 +7,11 @@ This document details the core architectural assumptions made during the develop
 ### 1. Database Architecture (PostgreSQL Migration)
 - We assume that the production and local database server uses **PostgreSQL (v15+)**.
 - The default connection parameters are:
-  - **Host**: `localhost`
-  - **Port**: `5432`
-  - **Database Name**: `wealthify`
-  - **User**: `postgres`
-  - **Password**: `postgres`
+  - `DB_HOST`: default `localhost`
+  - `DB_PORT`: default `5432`
+  - `DB_NAME`: default `wealthify`
+  - `DB_USER`: default `postgres`
+  - `DB_PASSWORD`: default `postgres`
 - Environment variables (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`) are supported to dynamically override connection parameters.
 - We assume tables and indexes are initialized automatically on FastAPI application startup if they do not exist.
 

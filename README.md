@@ -100,7 +100,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 # 5. Start the FastAPI server
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 *The database tables and index structures initialize and seed themselves automatically upon startup.*
 
@@ -120,11 +120,11 @@ Open your web browser and navigate to **`http://localhost:5500`**.
 ## 📊 Dashboard Renders & Directory Structure
 
 ### 1. Codebase Directory Map
-- `backend/app/db/connection.py`: Standard psycopg2 PostgreSQL connection pooling.
-- `backend/app/db/seeder.py`: PostgreSQL schemas, indexing, and mock seeding.
-- `backend/app/db/queries.py`: PostgreSQL date-filtered SELECT queries.
-- `backend/app/db/importer.py`: Multi-format CSV parser and date normalizer.
-- `backend/app/database.py`: Clean re-exporting facade.
+- `backend/db/connection.py`: Standard psycopg2 PostgreSQL connection pooling.
+- `backend/db/seeder.py`: PostgreSQL schemas, indexing, and mock seeding.
+- `backend/db/queries.py`: PostgreSQL date-filtered SELECT queries.
+- `backend/db/importer.py`: Multi-format CSV parser and date normalizer.
+- `backend/database.py`: Clean re-exporting facade.
 - `js/main.js`: Main initialization and date badges.
 - `js/utils.js`: Clean decimal formatting tools.
 - `js/api.js`: Resilient dual-mode fetch engine.

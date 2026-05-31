@@ -43,7 +43,7 @@ echo.
 
 :: Start FastAPI Backend Server in a new window
 echo [INFO] Starting FastAPI backend on http://localhost:8000...
-start "Mutual Fund Dashboard Backend" cmd /k "call backend\.venv\Scripts\activate.bat && cd backend && uvicorn app.main:app --host 127.0.0.1 --port 8000"
+start "Mutual Fund Dashboard Backend" cmd /k "call backend\.venv\Scripts\activate.bat && cd backend && uvicorn main:app --host 127.0.0.1 --port 8000"
 
 :: Wait a brief moment for backend to warm up
 timeout /t 2 /nobreak >nul
