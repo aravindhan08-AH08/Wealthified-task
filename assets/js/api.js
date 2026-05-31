@@ -1,5 +1,5 @@
 // ============================================================
-// api.js — Backend API Connection with Statically Deployed Fallback
+// api.js — Backend API Connection & Resilient Browser Fallback
 // ============================================================
 
 const BASE_URL = "http://localhost:8000";
@@ -96,12 +96,14 @@ async function loadAndRender() {
 
     const result = await response.json();
     DATA = result.data || [];
-    filtered = [...DATA];
     isOfflineMode = false;
 
     // Handle dynamic date input populating on initial load
     if (typeof isInitialLoad !== "undefined" && isInitialLoad && DATA.length > 0) {
+      filtered = [...DATA]; // Show all on initial load
       setInitialDates(DATA);
+    } else {
+      filtered = [...DATA]; // Backend already filtered it if params were sent
     }
   } catch (error) {
     // Gracefully handle backend server absence (e.g. static hostings like GitHub Pages)
@@ -109,25 +111,35 @@ async function loadAndRender() {
     console.warn("FastAPI backend is offline or unreachable. Falling back to persistent browser storage...", error);
     
     let localData = localStorage.getItem("mutual_funds_transactions");
-    if (!localData) {
-      localStorage.setItem("mutual_funds_transactions", JSON.stringify(DEFAULT_MOCK_DATA));
-      DATA = [...DEFAULT_MOCK_DATA];
-    } else {
+    let hasLocalData = false;
+    
+    if (localData) {
       try {
-        DATA = JSON.parse(localData);
+        const parsed = JSON.parse(localData);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          DATA = parsed;
+          hasLocalData = true;
+        }
       } catch (e) {
-        DATA = [...DEFAULT_MOCK_DATA];
+        hasLocalData = false;
       }
     }
     
+    // Self-healing: if localStorage is empty or corrupt, automatically seed it
+    if (!hasLocalData) {
+      localStorage.setItem("mutual_funds_transactions", JSON.stringify(DEFAULT_MOCK_DATA));
+      DATA = [...DEFAULT_MOCK_DATA];
+    }
+    
     // Process date filters client-side in offline fallback mode
-    filtered = DATA.filter(r => {
-      const d = r.tradeDate;
-      return (!fromDate || d >= fromDate) && (!toDate || d <= toDate);
-    });
-
-    if (typeof isInitialLoad !== "undefined" && isInitialLoad && DATA.length > 0) {
+    if (typeof isInitialLoad !== "undefined" && isInitialLoad) {
+      filtered = [...DATA]; // Show all transactions initially to avoid empty screens
       setInitialDates(DATA);
+    } else {
+      filtered = DATA.filter(r => {
+        const d = r.tradeDate;
+        return (!fromDate || d >= fromDate) && (!toDate || d <= toDate);
+      });
     }
     
     if (typeof isInitialLoad !== "undefined" && isInitialLoad) {
