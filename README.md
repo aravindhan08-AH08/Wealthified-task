@@ -104,6 +104,11 @@ uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 *The database tables and index structures initialize and seed themselves automatically upon startup.*
 
+Once the server is running, you can access the interactive **Swagger UI** at `http://localhost:8000/docs` to test all API endpoints:
+
+![FastAPI Interactive Swagger UI Docs](assets/swagger_ui.png)
+
+
 #### Run the Frontend
 In a new terminal window, navigate to the root directory and start a local HTTP server:
 ```bash
@@ -139,3 +144,38 @@ Open your web browser and navigate to **`http://localhost:5500`**.
 4. 🏛 **All Funds**: Lists active mutual fund schemes, categories, cumulative units, and weighted NAVs.
 5. 👤 **Investor Summary**: Grouped detail holdings per individual investor.
 6. 📈 **Fund Summary**: Grouped detail holdings per mutual fund scheme.
+
+---
+
+## 📊 Application Output Screens
+
+Below are screenshots of the key screens and views in Wealthify:
+
+### 1. Dashboard Overview
+Displays aggregated mutual fund metrics, capital weights, allocations, and fund summaries:
+![Dashboard Overview](assets/screenshot/Page1.png)
+
+### 2. Transaction History
+Complete searchable registry of all mutual fund transaction logs:
+![Transaction History](assets/screenshot/Page2.png)
+
+### 3. All Investors
+Roster of all unique investor profiles with total capital invested and transaction counts:
+![All Investors](assets/screenshot/Page3.png)
+
+### 4. All Funds
+Directory of active mutual fund schemes, category types, and total allocations:
+![All Funds](assets/screenshot/page4.png)
+
+### 5. Investor-wise Ledger
+Detailed portfolio holdings grouped dynamically per investor profile:
+![Investor-wise Ledger](assets/screenshot/page5.png)
+
+### 6. Fund-wise Ledger
+Detailed investor contributions and units grouped dynamically per mutual scheme:
+![Fund-wise Ledger](assets/screenshot/page6.png)
+
+### 7. Interactive Swagger API Documentation
+FastAPI automatic interactive OpenAPI route and schema documentation:
+![Swagger API Documentation](assets/screenshot/swagger_ui.png)
+
