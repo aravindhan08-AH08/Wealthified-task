@@ -1,14 +1,11 @@
-// ============================================================
-// api.js — Backend API Connection & Resilient Browser Fallback
-// ============================================================
-
+// Backend connection URL
 const BASE_URL = "http://localhost:8000";
 
-// Global data stores expected by metrics.js, charts.js, and tabs.js
+// Global data stores
 let DATA = [];
 let filtered = [];
 
-// Default demo data used when running offline or deployed statically on GitHub Pages
+// Demo data for offline/GitHub Pages fallback
 const DEFAULT_MOCK_DATA = [
   {
     amc: "DSP",
@@ -64,13 +61,10 @@ const DEFAULT_MOCK_DATA = [
   },
 ];
 
-// Track if we are running in local database fallback mode
+// Offline flag if backend is unreachable
 let isOfflineMode = false;
 
-/**
- * Main function to fetch date-filtered transaction records from backend.
- * Gracefully falls back to client-side localStorage persistence when backend is unreachable.
- */
+// Load transaction records from the backend API or fallback to localStorage
 async function loadAndRender() {
   let fromDate = document.getElementById("fromDate").value;
   let toDate = document.getElementById("toDate").value;
@@ -79,7 +73,7 @@ async function loadAndRender() {
     let url = `${BASE_URL}/api/transactions`;
     const params = [];
 
-    // Fetch all transactions initially to auto-detect limits, otherwise filter
+    // Apply date filters if not initial load
     if (typeof isInitialLoad !== "undefined" && !isInitialLoad) {
       if (fromDate) params.push(`from_date=${fromDate}`);
       if (toDate) params.push(`to_date=${toDate}`);
@@ -98,24 +92,20 @@ async function loadAndRender() {
     DATA = result.data || [];
     isOfflineMode = false;
 
-    // Handle dynamic date input populating on initial load
+    // Detect dates from database for filtering on first load
     if (
       typeof isInitialLoad !== "undefined" &&
       isInitialLoad &&
       DATA.length > 0
     ) {
-      filtered = [...DATA]; // Show all on initial load
+      filtered = [...DATA];
       setInitialDates(DATA);
     } else {
-      filtered = [...DATA]; // Backend already filtered it if params were sent
+      filtered = [...DATA];
     }
   } catch (error) {
-    // Gracefully handle backend server absence (e.g. static hostings like GitHub Pages)
     isOfflineMode = true;
-    console.warn(
-      "FastAPI backend is offline or unreachable. Falling back to persistent browser storage...",
-      error,
-    );
+    console.warn("FastAPI backend is offline. Using local storage fallback...", error);
 
     let localData = localStorage.getItem("mutual_funds_transactions");
     let hasLocalData = false;
@@ -132,7 +122,7 @@ async function loadAndRender() {
       }
     }
 
-    // Self-healing: if localStorage is empty or corrupt, automatically seed it
+    // Seed default mock data if local storage is empty
     if (!hasLocalData) {
       localStorage.setItem(
         "mutual_funds_transactions",
@@ -141,9 +131,9 @@ async function loadAndRender() {
       DATA = [...DEFAULT_MOCK_DATA];
     }
 
-    // Process date filters client-side in offline fallback mode
+    // Filter data locally when offline
     if (typeof isInitialLoad !== "undefined" && isInitialLoad) {
-      filtered = [...DATA]; // Show all transactions initially to avoid empty screens
+      filtered = [...DATA];
       setInitialDates(DATA);
     } else {
       filtered = DATA.filter((r) => {
@@ -153,13 +143,10 @@ async function loadAndRender() {
     }
 
     if (typeof isInitialLoad !== "undefined" && isInitialLoad) {
-      showNotification(
-        "Running in Local Demo Mode (Static/GitHub Pages).",
-        "success",
-      );
+      showNotification("Running in Local Demo Mode (Static/GitHub Pages).", "success");
     }
   } finally {
-    // Trigger complete dashboard re-render
+    // Redraw the dashboard UI
     if (typeof renderAll === "function") {
       renderAll();
     } else {
@@ -168,9 +155,7 @@ async function loadAndRender() {
   }
 }
 
-/**
- * Sets input dates based on absolute min/max trade dates in dataset.
- */
+// Detect and set input date ranges from the data
 function setInitialDates(transactions) {
   const dates = transactions.map((r) => r.tradeDate).filter(Boolean);
   if (dates.length > 0) {
@@ -182,15 +167,11 @@ function setInitialDates(transactions) {
   isInitialLoad = false;
 }
 
-/**
- * Handles uploading CSV data via the sidebar file input control.
- * Supports both backend upload and offline client-side CSV parsing.
- */
+// CSV file upload handler
 async function uploadCSV(inputElement) {
   const file = inputElement.files[0];
   if (!file) return;
 
-  // Show visual loading indicator
   const uploadLabel = document.querySelector("label[for='csvFileInput']");
   const originalText = uploadLabel.innerHTML;
   uploadLabel.innerHTML = `
@@ -202,7 +183,6 @@ async function uploadCSV(inputElement) {
   uploadLabel.style.pointerEvents = "none";
   uploadLabel.style.opacity = "0.7";
 
-  // Activate spin animation styles
   if (!document.getElementById("spin-style")) {
     const style = document.createElement("style");
     style.id = "spin-style";
@@ -215,7 +195,7 @@ async function uploadCSV(inputElement) {
     document.head.appendChild(style);
   }
 
-  // --- ONLINE MODE (FastAPI + SQLite) ---
+  // Upload to FastAPI backend if online
   if (!isOfflineMode) {
     const formData = new FormData();
     formData.append("file", file);
@@ -229,17 +209,13 @@ async function uploadCSV(inputElement) {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        showNotification(
-          result.message || "CSV successfully imported.",
-          "success",
-        );
+        showNotification(result.message || "CSV successfully imported.", "success");
         await loadAndRender();
       } else {
-        throw new Error(result.detail || "Import failed on backend.");
+        throw new Error(result.detail || "Import failed.");
       }
     } catch (error) {
-      console.error("Error uploading CSV to backend, retrying offline:", error);
-      // Fallback to client-side parsing if online upload fails mid-way
+      console.error("Backend CSV upload failed, trying offline parser:", error);
       await uploadCSVClientSide(file);
     } finally {
       inputElement.value = "";
@@ -248,12 +224,12 @@ async function uploadCSV(inputElement) {
       uploadLabel.style.opacity = "1";
     }
   }
-  // --- OFFLINE / DEPLOYED MODE (Browser LocalStorage DB) ---
+  // Parse in browser if offline
   else {
     try {
       await uploadCSVClientSide(file);
     } catch (error) {
-      console.error("Offline parsing failed:", error);
+      console.error("Offline CSV parsing failed:", error);
       showNotification("Failed to parse and import CSV file.", "error");
     } finally {
       inputElement.value = "";
@@ -264,19 +240,14 @@ async function uploadCSV(inputElement) {
   }
 }
 
-/**
- * Parses and persists CSV transaction data directly in the browser's localStorage.
- */
+// Client-side CSV file reader
 async function uploadCSVClientSide(file) {
   const reader = new FileReader();
   reader.onload = async function (e) {
     const text = e.target.result;
     const count = parseCSVText(text);
     if (count > 0) {
-      showNotification(
-        `Successfully imported ${count} transactions offline.`,
-        "success",
-      );
+      showNotification(`Successfully imported ${count} transactions offline.`, "success");
       await loadAndRender();
     } else {
       showNotification("No transactions found or malformed CSV file.", "error");
@@ -285,9 +256,7 @@ async function uploadCSVClientSide(file) {
   reader.readAsText(file);
 }
 
-/**
- * Client-side CSV Text parser. Maps columns dynamically and calculates metrics.
- */
+// CSV parser logic for client-side fallback
 function parseCSVText(text) {
   const lines = text.split(/\r?\n/);
   if (lines.length <= 1) return 0;
@@ -295,64 +264,16 @@ function parseCSVText(text) {
   const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
 
   const fieldMappings = {
-    amc: [
-      "amc",
-      "mutual fund company",
-      "fund house",
-      "asset management company",
-    ],
+    amc: ["amc", "mutual fund company", "fund house", "asset management company"],
     folio: ["folio", "folio number", "folio no", "folio_number"],
-    scheme: [
-      "scheme",
-      "scheme name",
-      "mutual fund",
-      "fund",
-      "fund name",
-      "scheme_name",
-    ],
-    inv: [
-      "inv",
-      "investor",
-      "investor name",
-      "name",
-      "holder name",
-      "primary holder",
-      "investor_name",
-    ],
+    scheme: ["scheme", "scheme name", "mutual fund", "fund", "fund name", "scheme_name"],
+    inv: ["inv", "investor", "investor name", "name", "holder name", "primary holder", "investor_name"],
     pan: ["pan", "pan number", "pan no", "pan_number"],
-    tradeDate: [
-      "tradedate",
-      "trade date",
-      "transaction date",
-      "date",
-      "date of purchase",
-      "transaction_date",
-    ],
-    purPrice: [
-      "purprice",
-      "pur price",
-      "purchase price",
-      "nav",
-      "nav price",
-      "price",
-      "purchase_price",
-    ],
+    tradeDate: ["tradedate", "trade date", "transaction date", "date", "date of purchase", "transaction_date"],
+    purPrice: ["purprice", "pur price", "purchase price", "nav", "nav price", "price", "purchase_price"],
     units: ["units", "units purchased", "quantity", "unit quantity"],
-    amount: [
-      "amount",
-      "amount invested",
-      "total amount",
-      "investment amount",
-      "purchase amount",
-      "total_amount",
-    ],
-    schemeType: [
-      "schemetype",
-      "scheme type",
-      "type",
-      "category",
-      "scheme_type",
-    ],
+    amount: ["amount", "amount invested", "total amount", "investment amount", "purchase amount", "total_amount"],
+    schemeType: ["schemetype", "scheme type", "type", "category", "scheme_type"],
     taxStatus: ["taxstatus", "tax status", "investor status", "tax_status"],
   };
 
@@ -367,7 +288,6 @@ function parseCSVText(text) {
     }
   }
 
-  // Best guess positional mappings if strict headers missing
   if (colMap.scheme === undefined && headers.length >= 3) {
     colMap.amc = 0;
     colMap.folio = 1;
@@ -385,9 +305,7 @@ function parseCSVText(text) {
   let count = 0;
   let localData = [];
   try {
-    localData = JSON.parse(
-      localStorage.getItem("mutual_funds_transactions") || "[]",
-    );
+    localData = JSON.parse(localStorage.getItem("mutual_funds_transactions") || "[]");
   } catch (e) {
     localData = [];
   }
@@ -396,7 +314,6 @@ function parseCSVText(text) {
     const line = lines[i].trim();
     if (!line) continue;
 
-    // Split row on commas ignoring commas inside double-quoted values
     const row = line
       .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
       .map((v) => v.replace(/^"|"$/g, "").trim());
@@ -421,13 +338,10 @@ function parseCSVText(text) {
         }
       }
 
-      let purPrice = parseFloat(
-        (row[colMap.purPrice] || "0").replace(/,/g, ""),
-      );
+      let purPrice = parseFloat((row[colMap.purPrice] || "0").replace(/,/g, ""));
       let units = parseFloat((row[colMap.units] || "0").replace(/,/g, ""));
       let amount = parseFloat((row[colMap.amount] || "0").replace(/,/g, ""));
 
-      // Dynamic metric computations
       if (amount === 0 && units > 0 && purPrice > 0) {
         amount = Math.round(units * purPrice * 100) / 100;
       } else if (units === 0 && amount > 0 && purPrice > 0) {
@@ -452,66 +366,44 @@ function parseCSVText(text) {
       });
       count++;
     } catch (e) {
-      console.warn("Failed to parse local CSV row: ", e);
+      console.warn("Failed to parse CSV row: ", e);
       continue;
     }
   }
 
   if (count > 0) {
-    localStorage.setItem(
-      "mutual_funds_transactions",
-      JSON.stringify(localData),
-    );
+    localStorage.setItem("mutual_funds_transactions", JSON.stringify(localData));
   }
   return count;
 }
 
-/**
- * Requests database reset. Automatically resets local storage if running offline.
- */
+// Reset database trigger
 async function resetDatabase() {
-  const confirmReset = confirm(
-    "Are you sure you want to clear the database and restore default demo mutual fund records?",
-  );
+  const confirmReset = confirm("Are you sure you want to clear the database and restore default demo records?");
   if (!confirmReset) return;
 
   if (!isOfflineMode) {
     try {
-      const response = await fetch(`${BASE_URL}/api/reset-db`, {
-        method: "POST",
-      });
-
+      const response = await fetch(`${BASE_URL}/api/reset-db`, { method: "POST" });
       const result = await response.json();
       if (response.ok && result.success) {
-        showNotification(
-          result.message || "Database reset successful.",
-          "success",
-        );
+        showNotification(result.message || "Database reset successful.", "success");
         await loadAndRender();
         return;
       } else {
         throw new Error(result.detail || "Failed to reset database.");
       }
     } catch (error) {
-      console.error(
-        "Failed to reset backend database, resetting local storage:",
-        error,
-      );
+      console.error("Failed to reset database on backend, resetting locally:", error);
     }
   }
 
-  // Fallback offline reset
-  localStorage.setItem(
-    "mutual_funds_transactions",
-    JSON.stringify(DEFAULT_MOCK_DATA),
-  );
-  showNotification("Demo database successfully restored locally.", "success");
+  localStorage.setItem("mutual_funds_transactions", JSON.stringify(DEFAULT_MOCK_DATA));
+  showNotification("Demo data restored locally.", "success");
   await loadAndRender();
 }
 
-/**
- * Premium custom floating notification banner implementation.
- */
+// Show a floating notification message
 function showNotification(message, type = "success") {
   const existing = document.getElementById("db-notification");
   if (existing) existing.remove();
@@ -543,8 +435,7 @@ function showNotification(message, type = "success") {
   const successIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M13.5 4.5l-7 7-3.5-3.5"/></svg>`;
   const errorIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M12 4L4 12M4 4l8 8"/></svg>`;
 
-  notification.innerHTML =
-    (type === "success" ? successIcon : errorIcon) + `<span>${message}</span>`;
+  notification.innerHTML = (type === "success" ? successIcon : errorIcon) + `<span>${message}</span>`;
   document.body.appendChild(notification);
 
   if (!document.getElementById("notification-styles")) {
@@ -564,8 +455,7 @@ function showNotification(message, type = "success") {
   }
 
   setTimeout(() => {
-    notification.style.animation =
-      "slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards";
+    notification.style.animation = "slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards";
     setTimeout(() => notification.remove(), 300);
   }, 4000);
 }

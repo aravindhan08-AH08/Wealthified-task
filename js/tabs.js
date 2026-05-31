@@ -1,9 +1,7 @@
-// ============================================================
-// tabs.js — Navigation & Multi-View Rendering Engine
-// ============================================================
-
+// Active tab tracker
 let activeTab = 0;
 
+// Tab metadata containing page header text and breadcrumbs
 const TAB_META = [
   {
     title: "Dashboard Overview",
@@ -37,18 +35,16 @@ const TAB_META = [
   },
 ];
 
-/**
- * Switch the active tab, highlight sidebar navigation, and trigger page redraw.
- */
+// Switches the active tab view, updates sidebar highlights, and re-renders
 function setTab(i) {
   activeTab = i;
 
-  // Toggle active class on sidebar navigation items
+  // Toggle active class in navigation
   document.querySelectorAll(".nav-item").forEach((item, idx) => {
     item.classList.toggle("active", idx === i);
   });
 
-  // Update header text and breadcrumb dynamically
+  // Update header text and breadcrumb
   document.getElementById("pageTitle").textContent = TAB_META[i].title;
   document.getElementById("pageDesc").textContent = TAB_META[i].desc;
   document.getElementById("breadcrumbActive").textContent = TAB_META[i].bc;
@@ -56,23 +52,20 @@ function setTab(i) {
   renderContent();
 }
 
-/**
- * Redraws complete metric cards and active tab pages.
- */
+// Redraw metrics and the current view content
 function renderAll() {
   renderMetrics(filtered);
   renderContent();
 }
 
-/**
- * Selects and renders the correct view markup based on activeTab.
- */
+// Renders HTML content based on the selected tab index
 function renderContent() {
   const el = document.getElementById("tabContent");
   if (!el) return;
 
+  // Reset CSS transition animation
   el.classList.remove("fade-up");
-  void el.offsetWidth; // Force CSS animation repaint
+  void el.offsetWidth; // Trigger DOM reflow to restart animation
   el.classList.add("fade-up");
 
   destroyCharts();
@@ -80,7 +73,7 @@ function renderContent() {
   switch (activeTab) {
     case 0:
       el.innerHTML = buildOverviewTab(filtered);
-      // Let the canvas render fully before drawing Chart.js graphs
+      // Wait a short moment for DOM to paint before drawing Chart.js graphs
       setTimeout(() => buildFundChart(filtered), 60);
       break;
     case 1:
@@ -104,7 +97,7 @@ function renderContent() {
 }
 
 // ============================================================
-// TAB 0: OVERVIEW (Charts Grid & Performance Summary Table)
+// TAB 0: OVERVIEW (Charts and scheme summaries)
 // ============================================================
 function buildOverviewTab(filtered) {
   if (!filtered.length) {
@@ -132,7 +125,6 @@ function buildOverviewTab(filtered) {
   const funds = Object.values(byScheme).sort((a, b) => b.totalAmt - a.totalAmt);
 
   return `
-    <!-- Charts Grid Section -->
     <div class="chart-grid">
       <div class="chart-card">
         <div class="chart-header">
@@ -154,7 +146,6 @@ function buildOverviewTab(filtered) {
       </div>
     </div>
 
-    <!-- Fund Performance Summary Table Section -->
     <div class="card">
       <div class="card-header">
         <div>
@@ -200,7 +191,7 @@ function buildOverviewTab(filtered) {
 }
 
 // ============================================================
-// TAB 1: TRANSACTIONS (Granular history list)
+// TAB 1: TRANSACTIONS (Granular list)
 // ============================================================
 function buildTransactionsTab(filtered) {
   if (!filtered.length)
@@ -255,7 +246,7 @@ function buildTransactionsTab(filtered) {
 }
 
 // ============================================================
-// TAB 2: ALL INVESTORS (Unique Investor ledger)
+// TAB 2: ALL INVESTORS (Unique Profiles list)
 // ============================================================
 function buildAllInvestorsTab(filtered) {
   if (!filtered.length) return '<div class="empty">No investors found.</div>';
@@ -318,7 +309,7 @@ function buildAllInvestorsTab(filtered) {
 }
 
 // ============================================================
-// TAB 3: ALL FUNDS (List of mutual fund schemes)
+// TAB 3: ALL FUNDS (Mutual schemes list)
 // ============================================================
 function buildAllFundsTab(filtered) {
   if (!filtered.length) return '<div class="empty">No schemes found.</div>';
@@ -380,7 +371,7 @@ function buildAllFundsTab(filtered) {
 }
 
 // ============================================================
-// TAB 4: INVESTOR-WISE LEDGER (Grouped portfolios per investor)
+// TAB 4: INVESTOR-WISE LEDGER (Grouped portfolios)
 // ============================================================
 function buildInvestorSummaryTab(filtered) {
   if (!filtered.length) return '<div class="empty">No holdings found.</div>';
@@ -444,7 +435,7 @@ function buildInvestorSummaryTab(filtered) {
 }
 
 // ============================================================
-// TAB 5: FUND-WISE LEDGER (Grouped investors per fund scheme)
+// TAB 5: FUND-WISE LEDGER (Grouped investors)
 // ============================================================
 function buildFundSummaryTab(filtered) {
   if (!filtered.length) return '<div class="empty">No schemes found.</div>';

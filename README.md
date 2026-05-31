@@ -1,17 +1,15 @@
-# Mutual Fund Transaction Dashboard 📈
+# Wealthify — Mutual Fund Transaction Dashboard 📈
 
-A modern, high-performance **Vanilla HTML + CSS + JavaScript** dashboard for tracking mutual fund transaction summaries, powered by a **Python / FastAPI** backend and a persistent **PostgreSQl** database.
+A modern, high-performance web dashboard for tracking mutual fund transaction summaries, powered by a **Python FastAPI** backend, a **PostgreSQL** database, and a clean **HTML, CSS, JS** frontend.
 
 ---
 
 ## 🏛 System Architecture (Dual-Mode Design)
 
-To ensure the dashboard works flawlessly in both local and statically deployed environments, it implements a smart **Dual-Mode Architecture**:
+To ensure the dashboard works in both local and statically deployed environments, it implements a **Dual-Mode Architecture**:
 
-1. **Online Mode (FastAPI + PostgreSQL)**: When running locally, the dashboard communicates directly with the Python FastAPI backend, persisting and aggregating your transactions inside a persistent SQLite database.
-2. **Offline Fallback Mode (Browser LocalStorage DB)**: When deployed as a static site (such as on **GitHub Pages**), the frontend automatically detects that the backend is unreachable. Instead of showing a blank screen, it seamlessly switches to a client-side database backed by browser `localStorage`. 
-
-All core features—including **date range filtering, metrics cards, interactive Chart.js graphs, and even CSV file uploading/parsing—remain 100% functional** even when running statically online with zero backend servers!
+1. **Online Mode (FastAPI + PostgreSQL)**: The dashboard communicates directly with the Python FastAPI backend, persisting and aggregating transactions inside a PostgreSQL database.
+2. **Offline Fallback Mode (Browser LocalStorage DB)**: When deployed as a static site (such as on **GitHub Pages**), the frontend automatically detects that the backend is unreachable and switches to a client-side database backed by browser `localStorage`.
 
 ```mermaid
 graph TD
@@ -20,11 +18,16 @@ graph TD
         API --> Charts["charts.js (Chart.js)"]
         API --> Metrics["metrics.js"]
         API --> Tabs["tabs.js"]
+        API --> Main["main.js"]
     end
     
     subgraph Online_Mode ["Online Mode (Local Development)"]
-        Router["main.py (API Routes)"] <--> DB_Layer["database.py (SQL Helper)"]
-        DB_Layer <--> DB[("mutual_funds.db SQLite")]
+        Router["main.py (API Routes)"] <--> Facade["database.py (Facade)"]
+        Facade <--> Connection["db/connection.py"]
+        Facade <--> Seeder["db/seeder.py"]
+        Facade <--> Queries["db/queries.py"]
+        Facade <--> Importer["db/importer.py"]
+        Connection <--> DB[("PostgreSQL Server")]
     end
     
     subgraph Offline_Mode ["Offline Fallback Mode (Deployed / GitHub Pages)"]
@@ -36,7 +39,6 @@ graph TD
     API -.-> |Multipart CSV Upload| Router
 ```
 
-
 ---
 
 ## 🛠 Prerequisites & Dependencies
@@ -46,36 +48,41 @@ To run this application locally, ensure you have the following installed on your
 | Layer | Tool / Dependency | Version Required | Purpose |
 | :--- | :--- | :--- | :--- |
 | **System** | [Python](https://www.python.org/downloads/) | `3.9` or higher | Runs the backend and local servers |
+| **Database** | [PostgreSQL](https://www.postgresql.org/) | `15` or higher | Robust persistent SQL transaction storage |
 | **Backend** | [FastAPI](https://fastapi.tiangolo.com/) | `0.110.0` | High-performance async web framework |
 | **Backend** | [Uvicorn](https://www.uvicorn.org/) | `0.28.0` | ASGI web server implementation |
+| **Backend** | [psycopg2-binary](https://pypi.org/project/psycopg2-binary/) | `2.9.9` | PostgreSQL database adapter for Python |
 | **Backend** | [python-multipart](https://github.com/Kludex/python-multipart) | `0.0.9` | Handles multi-part file uploads (CSV files) |
-| **Database** | [PostgreSQL](https://www.postgresql.org/) | `15` or higher | Robust persistent SQL transaction storage |
 | **Frontend** | HTML, CSS, JS | Native | Clean, responsive and interactive client-side rendering |
-| **Frontend** | [Google Fonts](https://fonts.google.com/) | DM Sans & DM Mono | Sleek typography and monospace layouts |
+| **Frontend** | [Chart.js](https://www.chartjs.org/) | `4.4.1` (via CDN) | Metric bar and doughnut charts |
+| **Frontend** | [Google Fonts](https://fonts.google.com/) | DM Sans & Inter | Sleek typography and layouts |
+
+---
+
+## 📝 Core Assumptions Mapped to the Project
+
+The following architectural and design assumptions were established to guide development:
+
+1. **PostgreSQL Server**: The backend assumes a running PostgreSQL database instance. Connection parameters are read from environment variables (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`), falling back to standard defaults (`localhost`, `5432`, `wealthify`, `postgres`, `postgres`).
+2. **Database Auto-Initialization**: On backend application startup, database tables (`transactions`) and index structures are automatically initialized and seeded with demo transactions if the database is empty.
+3. **Strict Date Normalization**: Transaction dates inside CSV sheets may have varying date format layouts (e.g. `DD/MM/YYYY`, `DD-MM-YYYY`). All date records are strictly normalized to a zero-padded `YYYY-MM-DD` format on import to ensure accurate date-range filtering.
+4. **Resilient Local Persistence**: When hosted statically (such as on GitHub Pages), the backend is assumed to be unreachable. The frontend automatically detects this state and falls back to browser `localStorage` to ensure a fully functional offline demo state.
+5. **Weighted Average NAV Calculations**: To represent portfolio health accurately, NAV prices are computed as a weighted average: $\sum (\text{NAV} \times \text{units}) / \sum \text{units}$. This represents a blended portfolio NAV in real-time.
+6. **Clean Frontend Design**: The frontend interface has a pristine, distraction-free top header that contains only the date badge and user profile avatar. All CSV upload and database reset buttons are excluded from the visual dashboard, while their corresponding backend API endpoints remain active for testing or script integrations.
 
 ---
 
 ## 🚀 How to Setup & Run
 
-### Method 1: The One-Click Way (Windows) — Recommended ⚡
-An automated, production-ready launcher script is provided to set up and run everything instantly.
+### 1. Database Creation (PostgreSQL)
+Ensure your local PostgreSQL server is running and create a database named `wealthify`:
+```sql
+CREATE DATABASE wealthify;
+```
 
-1. Navigate to the root directory `mutual-fund-dashboard/`.
-2. **Double-click** the **`run.bat`** file.
-3. The launcher will automatically:
-   - Verify your local Python installation.
-   - Create a localized Python virtual environment (`backend/.venv`) if it does not exist.
-   - Upgrade `pip` and install all required dependencies from `backend/requirements.txt`.
-   - Start the **FastAPI backend** on `http://localhost:8000` in a new window.
-   - Start a **local HTTP server** for the frontend on `http://localhost:5500`.
-   - Launch your default web browser and open the dashboard automatically.
+### 2. Manual Startup (Multi-Platform) 💻
 
----
-
-### Method 2: Manual Installation & Run (Multi-Platform) 💻
-If you prefer running manual commands or are using macOS/Linux, follow these steps:
-
-#### 1. Setup & Run the Backend
+#### Setup & Run the Backend
 ```bash
 # 1. Navigate to the backend folder
 cd backend
@@ -95,10 +102,10 @@ pip install -r requirements.txt
 # 5. Start the FastAPI server
 uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
-*The backend database initializes and seeds itself with demo transactions automatically upon startup.*
+*The database tables and index structures initialize and seed themselves automatically upon startup.*
 
-#### 2. Run the Frontend
-In a new terminal window, navigate to the root directory and start a local server:
+#### Run the Frontend
+In a new terminal window, navigate to the root directory and start a local HTTP server:
 ```bash
 # Navigate to project root
 cd mutual-fund-dashboard
@@ -110,44 +117,25 @@ Open your web browser and navigate to **`http://localhost:5500`**.
 
 ---
 
-## 📊 How to See the Output Details
+## 📊 Dashboard Renders & Directory Structure
 
-Once the dashboard is loaded in your browser, you can explore the transaction summaries through several interactive views:
+### 1. Codebase Directory Map
+- `backend/app/db/connection.py`: Standard psycopg2 PostgreSQL connection pooling.
+- `backend/app/db/seeder.py`: PostgreSQL schemas, indexing, and mock seeding.
+- `backend/app/db/queries.py`: PostgreSQL date-filtered SELECT queries.
+- `backend/app/db/importer.py`: Multi-format CSV parser and date normalizer.
+- `backend/app/database.py`: Clean re-exporting facade.
+- `js/main.js`: Main initialization and date badges.
+- `js/utils.js`: Clean decimal formatting tools.
+- `js/api.js`: Resilient dual-mode fetch engine.
+- `js/metrics.js`: Real-time weighted average metric calculations.
+- `js/charts.js`: Chart.js visualizer configurations.
+- `js/tabs.js`: Multi-view content generation routing.
 
-### 1. The 4 Dynamic Dashboard Tabs
-* **Tab 1: Investor / Fund** — Summarizes transactions grouped by Mutual Fund Scheme. Shows who purchased units, their PAN, the units purchased, purchase price (NAV), and trade dates.
-* **Tab 2: Fund / Investor** — Grouped by individual Investor (based on PAN). Displays all schemes purchased by a single investor, with corresponding amount totals.
-* **Tab 3: Investor List** — A sorted tabular ledger of all unique investors, listing their primary name, tax status, total transaction count, and cumulative invested capital.
-* **Tab 4: Fund Summary** — Aggregate details per scheme showing total invested amount, total units, average purchase price, unique investor counts, and interactive data charts.
-
-### 2. Date-Range Filtering (Auto-Discovered)
-* On initial load, the dashboard automatically scans the database to find the absolute minimum and maximum trade dates.
-* The date filter input fields (`FROM` and `TO`) are auto-populated to display this full range.
-* To filter, select new dates and click **Apply**. The backend dynamically queries SQLite using index-accelerated range filters and returns the updated metrics, tables, and charts instantly.
-* Click **Reset** to return to the database's full date bounds.
-
-### 3. Uploading Custom Datasets (CSV File Import)
-You can upload your own mutual fund transaction CSV sheet directly from the dashboard:
-1. Click the **"Upload CSV"** button in the sidebar.
-2. Select any standard transaction CSV file.
-3. The dashboard displays a modern loading animation, transmits the file to the FastAPI server, parses it, inserts the records into SQLite, and automatically updates all graphs, summaries, and metrics in real-time.
-4. An elegant glassmorphic **floating notification banner** reports the success or failure of your upload.
-
-### 4. Database Reset (Demo Mode)
-* Click **"Reset to Demo"** in the sidebar to clear all custom uploads and re-seed the SQLite database back to its standard mock transactions for testing.
-
----
-
-## 🖥 Output & UI Specifications
-
-The dashboard utilizes a curated **dark-theme modern system design** with harmonized color palettes:
-
-* **Sleek Typography**: Utilizes `DM Sans` for clean UI scanning and `DM Mono` for numerical values.
-* **KPI Metric Cards**: Dynamic top-tier indicators showing:
-  - **Total Invested**: Multi-colored card using `₹` currency layout.
-  - **Total Units**: Displays cumulative NAV units purchased, rounded precisely.
-  - **Unique Funds & Investors**: Count indices mapped directly from SQL aggregations.
-* **Double Bar-Charts (Tab 4)**: Interactive charts rendering:
-  - Total Capital Invested per Mutual Fund.
-  - Total Units Purchased per Mutual Fund.
-* **Custom Tables**: Responsive tables with hover row highlights, colored amount text, and distinct pill-badges for PAN numbers and scheme categories.
+### 2. Dynamic Sidebar Tabs
+1. 🏠 **Overview**: Renders KPI metric cards, side-by-side graphical charts, and a "Fund Performance Summary" aggregate table.
+2. 📝 **Transactions**: History ledger listing all transaction rows.
+3. 👥 **All Investors**: Lists unique investor accounts, tax statuses, transaction counts, and capital sums.
+4. 🏛 **All Funds**: Lists active mutual fund schemes, categories, cumulative units, and weighted NAVs.
+5. 👤 **Investor Summary**: Grouped detail holdings per individual investor.
+6. 📈 **Fund Summary**: Grouped detail holdings per mutual fund scheme.

@@ -373,37 +373,12 @@
       <div id="tabContent" class="fade-up"></div>
     </main>
 
-    <!-- ==================== SCRIPTS ==================== -->
-    <script src="assets/js/utils.js"></script>
-    <script src="assets/js/api.js?v=2.0"></script>
-    <script src="assets/js/metrics.js"></script>
-    <script src="assets/js/charts.js"></script>
-    <script src="assets/js/tabs.js"></script>
-
-    <script>
-      // Track initial load state to auto-discover date bounds from database
-      let isInitialLoad = true;
-
-      // Format today's date dynamically to show in top header
-      const options = {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      };
-      document.getElementById("currentDateDisplay").textContent =
-        new Date().toLocaleDateString("en-US", options);
-
-      // Resets the date inputs and triggers database auto-discovery
-      function resetFilter() {
-        isInitialLoad = true;
-        document.getElementById("fromDate").value = "";
-        document.getElementById("toDate").value = "";
-        loadAndRender();
-      }
-
-      // Initial load call
-      loadAndRender();
-    </script>
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js?v=2.0"></script>
+    <script src="js/metrics.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/tabs.js"></script>
+    <script src="js/main.js"></script>
   </body>
 </html>

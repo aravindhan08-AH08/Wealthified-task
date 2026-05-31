@@ -1,12 +1,7 @@
-// ============================================================
-// charts.js — Overview Visualizations (Bar & Doughnut Charts)
-// ============================================================
-
+// Store currently active Chart.js instances to avoid redrawing glitches
 let chartInstances = {};
 
-/**
- * Cleanly destroys any existing chart instances to avoid redraw bugs.
- */
+// Safely destroy existing charts to free canvas resources
 function destroyCharts() {
   Object.values(chartInstances).forEach((c) => {
     try {
@@ -18,9 +13,7 @@ function destroyCharts() {
   chartInstances = {};
 }
 
-/**
- * Builds the visual dashboard charts (Bar allocation & Doughnut distribution).
- */
+// Generate the Bar and Doughnut charts
 function buildFundChart(filtered) {
   const byScheme = {};
   filtered.forEach((r) => {
@@ -39,7 +32,7 @@ function buildFundChart(filtered) {
     parseFloat(v.totalUnits.toFixed(2)),
   );
 
-  // Dynamic, premium light HSL palette
+  // Modern soft color palette for chart segments
   const COLORS = [
     "#6366f1",
     "#3b82f6",
@@ -54,7 +47,7 @@ function buildFundChart(filtered) {
   const unitCtx = document.getElementById("unitChart");
   if (!amtCtx || !unitCtx) return;
 
-  // 1. AMOUNT INVESTED BAR CHART
+  // 1. Amount Invested (Bar Chart)
   chartInstances.amt = new Chart(amtCtx, {
     type: "bar",
     data: {
@@ -95,7 +88,7 @@ function buildFundChart(filtered) {
     },
   });
 
-  // 2. UNITS DISTRIBUTION DOUGHNUT CHART
+  // 2. Units Distribution (Doughnut Chart)
   chartInstances.unit = new Chart(unitCtx, {
     type: "doughnut",
     data: {
@@ -124,7 +117,7 @@ function buildFundChart(filtered) {
           },
         },
       },
-      cutout: "70%", // Gives the hollow ring look shown in the screenshots
+      cutout: "70%",
     },
   });
 }
