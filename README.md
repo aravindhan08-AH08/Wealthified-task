@@ -15,20 +15,20 @@ All core features—including **date range filtering, metrics cards, interactive
 
 ```mermaid
 graph TD
-    subgraph Frontend [Frontend Dashboard (Port 5500)]
-        UI[index.html & CSS] <--> API[api.js (Dual-Mode Fetch)]
-        API --> Charts[charts.js (Chart.js)]
-        API --> Metrics[metrics.js]
-        API --> Tabs[tabs.js]
+    subgraph Frontend ["Frontend Dashboard (Port 5500)"]
+        UI["index.html & CSS"] <--> API["api.js (Dual-Mode Fetch)"]
+        API --> Charts["charts.js (Chart.js)"]
+        API --> Metrics["metrics.js"]
+        API --> Tabs["tabs.js"]
     end
     
-    subgraph Online_Mode [Online Mode (Local Development)]
-        Router[main.py (API Routes)] <--> DB_Layer[database.py (SQL Helper)]
-        DB_Layer <--> DB[(mutual_funds.db SQLite)]
+    subgraph Online_Mode ["Online Mode (Local Development)"]
+        Router["main.py (API Routes)"] <--> DB_Layer["database.py (SQL Helper)"]
+        DB_Layer <--> DB[("mutual_funds.db SQLite")]
     end
     
-    subgraph Offline_Mode [Offline Fallback Mode (Deployed / GitHub Pages)]
-        LS[(Browser LocalStorage DB)]
+    subgraph Offline_Mode ["Offline Fallback Mode (Deployed / GitHub Pages)"]
+        LS[("Browser LocalStorage DB")]
     end
 
     API <--> |JSON API / CORS| Router
