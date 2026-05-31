@@ -2,44 +2,8 @@
 
 A modern, high-performance web dashboard for tracking mutual fund transaction summaries, powered by a **Python FastAPI** backend, a **PostgreSQL** database, and a clean **HTML, CSS, JS** frontend.
 
----
 
-## 🏛 System Architecture (Dual-Mode Design)
 
-To ensure the dashboard works in both local and statically deployed environments, it implements a **Dual-Mode Architecture**:
-
-1. **Online Mode (FastAPI + PostgreSQL)**: The dashboard communicates directly with the Python FastAPI backend, persisting and aggregating transactions inside a PostgreSQL database.
-2. **Offline Fallback Mode (Browser LocalStorage DB)**: When deployed as a static site (such as on **GitHub Pages**), the frontend automatically detects that the backend is unreachable and switches to a client-side database backed by browser `localStorage`.
-
-```mermaid
-graph TD
-    subgraph Frontend ["Frontend Dashboard (Port 5500)"]
-        UI["index.html & CSS"] <--> API["api.js (Dual-Mode Fetch)"]
-        API --> Charts["charts.js (Chart.js)"]
-        API --> Metrics["metrics.js"]
-        API --> Tabs["tabs.js"]
-        API --> Main["main.js"]
-    end
-    
-    subgraph Online_Mode ["Online Mode (Local Development)"]
-        Router["main.py (API Routes)"] <--> Facade["database.py (Facade)"]
-        Facade <--> Connection["db/connection.py"]
-        Facade <--> Seeder["db/seeder.py"]
-        Facade <--> Queries["db/queries.py"]
-        Facade <--> Importer["db/importer.py"]
-        Connection <--> DB[("PostgreSQL Server")]
-    end
-    
-    subgraph Offline_Mode ["Offline Fallback Mode (Deployed / GitHub Pages)"]
-        LS[("Browser LocalStorage DB")]
-    end
-
-    API <--> |JSON API / CORS| Router
-    API <--> |Local Persistence Fallback| LS
-    API -.-> |Multipart CSV Upload| Router
-```
-
----
 
 ## 🛠 Prerequisites & Dependencies
 
@@ -100,7 +64,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 # 5. Start the FastAPI server
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+uvicorn main:app --reload
 ```
 *The database tables and index structures initialize and seed themselves automatically upon startup.*
 
@@ -109,18 +73,7 @@ Once the server is running, you can access the interactive **Swagger UI** at `ht
 ![FastAPI Interactive Swagger UI Docs](assets/swagger_ui.png)
 
 
-#### Run the Frontend
-In a new terminal window, navigate to the root directory and start a local HTTP server:
-```bash
-# Navigate to project root
-cd mutual-fund-dashboard
 
-# Start local server
-python -m http.server 5500
-```
-Open your web browser and navigate to **`http://localhost:5500`**.
-
----
 
 ## 📊 Dashboard Renders & Directory Structure
 
