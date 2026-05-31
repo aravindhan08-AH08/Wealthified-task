@@ -8,7 +8,7 @@ A modern, high-performance **Vanilla HTML + CSS + JavaScript** dashboard for tra
 
 To ensure the dashboard works flawlessly in both local and statically deployed environments, it implements a smart **Dual-Mode Architecture**:
 
-1. **Online Mode (FastAPI + SQLite)**: When running locally, the dashboard communicates directly with the Python FastAPI backend, persisting and aggregating your transactions inside a persistent SQLite database.
+1. **Online Mode (FastAPI + PostgreSQL)**: When running locally, the dashboard communicates directly with the Python FastAPI backend, persisting and aggregating your transactions inside a persistent SQLite database.
 2. **Offline Fallback Mode (Browser LocalStorage DB)**: When deployed as a static site (such as on **GitHub Pages**), the frontend automatically detects that the backend is unreachable. Instead of showing a blank screen, it seamlessly switches to a client-side database backed by browser `localStorage`. 
 
 All core features—including **date range filtering, metrics cards, interactive Chart.js graphs, and even CSV file uploading/parsing—remain 100% functional** even when running statically online with zero backend servers!
